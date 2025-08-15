@@ -346,10 +346,6 @@ export default function Home() {
                       e.currentTarget.style.display = 'none';
                     }}
                   />
-                  {/* Fallback dengan emoji dan gradient */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-cyan-500/20 to-blue-600/20">
-                    <span className="text-6xl opacity-80">{project.emoji}</span>
-                  </div>
                   
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
