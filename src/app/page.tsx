@@ -417,12 +417,6 @@ export default function Home() {
                   {/* Action Buttons */}
                   <div className="flex gap-3">
                     <button 
-                      onClick={() => window.open(project.demo, '_blank')}
-                      className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-semibold rounded-xl transition-all duration-300 text-sm hover:shadow-lg hover:shadow-cyan-500/30 transform hover:scale-105"
-                    >
-                      Live Demo
-                    </button>
-                    <button 
                       onClick={() => window.open(project.github, '_blank')}
                       className="flex-1 px-4 py-3 border-2 border-gray-600 hover:border-cyan-500 text-gray-300 hover:text-cyan-300 font-semibold rounded-xl transition-all duration-300 text-sm hover:bg-cyan-500/10"
                     >
