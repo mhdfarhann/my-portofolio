@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Definisikan interface untuk tipe data
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface GeminiMessage {
+  role: 'user' | 'model';
+  parts: { text: string }[];
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { messages } = await request.json();
+    const { messages }: { messages: Message[] } = await request.json();
 
     // Context tetap di sini, tapi akan dipindah ke systemInstruction
     const portfolioContext = `
@@ -65,7 +76,7 @@ Jika ditanya tentang project atau skills, berikan detail yang relevan. Jika ada 
 `;
 
     // Ambil riwayat percakapan dari frontend, dengan memastikan format role yang benar
-    const conversationHistory = messages.map((msg: any) => ({
+    const conversationHistory: GeminiMessage[] = messages.map((msg: Message) => ({
       // Perhatikan: role 'assistant' dari frontend harus dikonversi menjadi 'model' untuk Gemini API
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content }]
