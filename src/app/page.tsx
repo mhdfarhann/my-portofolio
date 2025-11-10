@@ -20,11 +20,25 @@ interface SelectedImage {
   title: string;
 }
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'assistant',
+      content: 'Halo! Saya asisten AI Muhammad Farhan. Saya bisa membantu Anda mengetahui lebih lanjut tentang skills, project, dan pengalaman saya. Ada yang ingin Anda tanyakan?'
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,6 +73,65 @@ export default function Home() {
   const closeImageModal = () => {
     setIsModalOpen(false);
     setTimeout(() => setSelectedImage(null), 300);
+  };
+
+  const sendMessage = async () => {
+  if (!inputMessage.trim() || isLoading) return;
+
+  const userMessage = inputMessage.trim();
+  setInputMessage('');
+  setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+  setIsLoading(true);
+
+  try {
+    // Call your Next.js API route instead of Anthropic directly
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        // Pastikan Anda mengirim seluruh riwayat percakapan yang relevan
+        messages: [
+          ...messages.slice(1).map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+          { role: "user", content: userMessage }
+        ],
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      // Jika backend mengirim { success: false, error: '...' }
+      throw new Error(result.error);
+    }
+
+    // --- FIX KRUSIAL DI SINI ---
+    // Backend (route.ts) mengembalikan { success: true, message: "..." }.
+    // Kita harus langsung mengakses result.message.
+    const assistantMessage = result.message;
+    // --- AKHIR FIX KRUSIAL ---
+
+    setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
+  } catch (error) {
+    console.error('Error:', error);
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      content: 'Maaf, terjadi kesalahan. Silakan coba lagi.' 
+    }]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   const projects: Project[] = [
@@ -533,6 +606,98 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* AI Chatbot */}
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 bg-white text-black p-4 rounded-full shadow-lg hover:bg-gray-200 transition-all duration-200 z-40"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </button>
+      )}
+
+      {isChatOpen && (
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-black border border-gray-800 rounded-lg shadow-2xl flex flex-col z-40">
+          {/* Chat Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-800">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black font-semibold">
+                MF
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-white">Muhammad Farhan AI</h3>
+                <p className="text-xs text-gray-500">Online</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsChatOpen(false)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-white text-black'
+                      : 'bg-gray-900 text-gray-300 border border-gray-800'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-900 text-gray-300 border border-gray-800 rounded-lg p-3">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Chat Input */}
+          <div className="p-4 border-t border-gray-800">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Tanya tentang skills, project, atau pengalaman..."
+                className="flex-1 bg-gray-900 text-white border border-gray-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-gray-700"
+                disabled={isLoading}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={isLoading || !inputMessage.trim()}
+                className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
