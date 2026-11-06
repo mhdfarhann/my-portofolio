@@ -3,10 +3,10 @@
 /* Hitam sungguhan, dengan satu aksen emas (benang songket) */
 @theme {
   --color-ink: #000000;
-  --color-raised: #131313; /* permukaan: panel, placeholder gambar */
-  --color-line: #2a2a2a; /* garis pemisah */
+  --color-raised: #0f0f0f; /* permukaan: panel, placeholder gambar */
+  --color-line: #262626; /* garis pemisah */
   --color-fg: #f2efe8; /* teks utama */
-  --color-muted: #9a9a9a; /* teks sekunder */
+  --color-muted: #8f8f8f; /* teks sekunder */
   --color-accent: #e2b05b; /* emas, dipakai hemat */
   --color-sea: #6fc3b2; /* status selesai / tersedia */
 }
@@ -17,12 +17,13 @@
   --font-body: var(--font-newsreader), Georgia, serif;
 }
 
-html {
-  color-scheme: dark;
-  scroll-behavior: smooth;
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -52,100 +53,262 @@ section[id] {
   font-stretch: 125%;
 }
 
-/* ---------- Hero: huruf naik satu per satu, garis emas ditarik ---------- */
-@keyframes rise {
-  from {
-    transform: translateY(110%);
-  }
-  to {
-    transform: translateY(0);
-  }
+/* ---------- Tekstur: grain halus di seluruh halaman ---------- */
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 8s steps(10) infinite;
 }
 
-@keyframes draw {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
+@keyframes grain {
+  0%,
+  100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -10%); }
+  30% { transform: translate(3%, -15%); }
+  50% { transform: translate(12%, 9%); }
+  70% { transform: translate(9%, 4%); }
+  90% { transform: translate(-1%, 7%); }
 }
 
-.rise {
-  animation: rise 900ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+/* ---------- Hero ---------- */
+.aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform;
 }
 
-.draw {
-  transform-origin: left;
-  animation: draw 1200ms cubic-bezier(0.2, 0.7, 0.1, 1) 700ms both;
+.aurora-a {
+  width: 46vmax;
+  height: 46vmax;
+  top: -18vmax;
+  right: -14vmax;
+  background: radial-gradient(circle, rgba(226, 176, 91, 0.22), transparent 65%);
+  animation: float-a 18s ease-in-out infinite alternate;
+}
+
+.aurora-b {
+  width: 38vmax;
+  height: 38vmax;
+  bottom: -20vmax;
+  left: -12vmax;
+  background: radial-gradient(circle, rgba(111, 195, 178, 0.12), transparent 65%);
+  animation: float-b 22s ease-in-out infinite alternate;
+}
+
+@keyframes float-a {
+  to { transform: translate(-8vmax, 10vmax) scale(1.15); }
+}
+
+@keyframes float-b {
+  to { transform: translate(10vmax, -6vmax) scale(0.9); }
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
 }
 
 /* Sorot cahaya mengikuti kursor di hero */
 .spotlight {
   background: radial-gradient(
-    420px circle at var(--mx, -999px) var(--my, -999px),
-    rgba(226, 176, 91, 0.13),
+    480px circle at var(--mx, -999px) var(--my, -999px),
+    rgba(226, 176, 91, 0.12),
     transparent 70%
   );
+}
+
+/* Huruf naik satu per satu dengan sedikit blur */
+@keyframes rise {
+  from {
+    transform: translateY(110%) rotate(4deg);
+    filter: blur(6px);
+  }
+  to {
+    transform: translateY(0) rotate(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.rise {
+  animation: rise 1100ms var(--ease-out) both;
+}
+
+.fade-up {
+  animation: fade-up 1000ms var(--ease-out) both;
+}
+
+.draw {
+  transform-origin: left;
+  animation: draw 1400ms var(--ease-out) 700ms both;
+}
+
+/* Teks peran yang berganti */
+.rotator {
+  display: inline-grid;
+  height: 1.3em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.rotator > span {
+  grid-area: 1 / 1;
+  line-height: 1.3em;
+  animation: rotate-word 9s var(--ease-out) infinite both;
+  opacity: 0;
+}
+
+.rotator > span:nth-child(2) { animation-delay: 3s; }
+.rotator > span:nth-child(3) { animation-delay: 6s; }
+
+@keyframes rotate-word {
+  0% { transform: translateY(100%); opacity: 0; }
+  5%,
+  30% { transform: translateY(0); opacity: 1; }
+  36%,
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+/* Indikator scroll */
+.scroll-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent);
+  animation: scroll-line 2.2s var(--ease-out) infinite;
+}
+
+@keyframes scroll-line {
+  0% { transform: translateY(-100%); }
+  60%,
+  100% { transform: translateY(100%); }
 }
 
 /* ---------- Muncul saat di-scroll ---------- */
 .reveal {
   transition:
-    opacity 900ms cubic-bezier(0.2, 0.7, 0.1, 1),
-    transform 900ms cubic-bezier(0.2, 0.7, 0.1, 1),
-    clip-path 1100ms cubic-bezier(0.2, 0.7, 0.1, 1);
+    opacity 1000ms var(--ease-out),
+    transform 1000ms var(--ease-out),
+    filter 1000ms var(--ease-out),
+    clip-path 1300ms var(--ease-out);
 }
 
 .reveal-up {
   opacity: 0;
-  transform: translateY(32px);
+  transform: translateY(36px);
+  filter: blur(6px);
 }
 
 .reveal-wipe {
   clip-path: inset(0 100% 0 0);
 }
 
+.reveal-wipe > * {
+  transform: scale(1.12);
+  transition: transform 1600ms var(--ease-out);
+}
+
 .reveal-line {
   transform: scaleX(0);
   transform-origin: left;
-  transition-duration: 1400ms;
+  transition-duration: 1500ms;
 }
 
 .reveal-up[data-shown="true"] {
   opacity: 1;
   transform: none;
+  filter: blur(0);
 }
 
 [data-shown="true"] > .reveal-wipe {
   clip-path: inset(0 0 0 0);
 }
 
+[data-shown="true"] > .reveal-wipe > * {
+  transform: none;
+}
+
 .reveal-line[data-shown="true"] {
   transform: scaleX(1);
 }
 
+/* Judul: kata naik dari balik masker */
+.split-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.08em;
+}
+
+.split-word > span {
+  display: inline-block;
+  transform: translateY(105%);
+  transition: transform 1100ms var(--ease-out);
+}
+
+[data-shown="true"] .split-word > span {
+  transform: none;
+}
+
 /* ---------- Marquee teknologi ---------- */
 @keyframes marquee {
-  to {
-    transform: translateX(-50%);
-  }
+  to { transform: translateX(-50%); }
 }
 
 .marquee-track {
-  animation: marquee 45s linear infinite;
+  animation: marquee 50s linear infinite;
+}
+
+.marquee-track.reverse {
+  animation-direction: reverse;
+  animation-duration: 60s;
 }
 
 .marquee:hover .marquee-track {
   animation-play-state: paused;
 }
 
+.marquee {
+  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+}
+
 .outline-text {
   color: transparent;
-  -webkit-text-stroke: 1px var(--color-muted);
+  -webkit-text-stroke: 1px #4a4a4a;
   transition:
-    color 300ms,
-    -webkit-text-stroke-color 300ms;
+    color 400ms,
+    -webkit-text-stroke-color 400ms;
 }
 
 .outline-text:hover {
@@ -153,7 +316,153 @@ section[id] {
   -webkit-text-stroke-color: var(--color-accent);
 }
 
-/* ---------- Chat ---------- */
+/* ---------- Kartu project: tilt 3D + kilau ---------- */
+.tilt {
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 700ms var(--ease-out);
+  transform-style: preserve-3d;
+}
+
+.tilt.is-active {
+  transition-duration: 150ms;
+}
+
+.shine {
+  background: radial-gradient(
+    600px circle at var(--px, 50%) var(--py, 50%),
+    rgba(255, 255, 255, 0.12),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 500ms;
+}
+
+.tilt.is-active .shine {
+  opacity: 1;
+}
+
+/* Tombol dengan isian yang naik dari bawah */
+.btn-fill {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-fg);
+  transform: translateY(101%);
+  border-radius: inherit;
+  transition: transform 500ms var(--ease-out);
+}
+
+.btn-fill:hover::before {
+  transform: none;
+}
+
+/* Tautan dengan garis bawah yang ditarik */
+.link-line {
+  background-image: linear-gradient(var(--color-accent), var(--color-accent));
+  background-size: 100% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  padding-bottom: 2px;
+  transition:
+    background-size 500ms var(--ease-out),
+    color 300ms;
+}
+
+.link-line:hover {
+  animation: link-redraw 700ms var(--ease-out);
+  color: var(--color-accent);
+}
+
+@keyframes link-redraw {
+  0% { background-size: 100% 1px; background-position: 100% 100%; }
+  45% { background-size: 0% 1px; background-position: 100% 100%; }
+  46% { background-size: 0% 1px; background-position: 0 100%; }
+  100% { background-size: 100% 1px; background-position: 0 100%; }
+}
+
+/* ---------- Kursor kustom (hanya perangkat dengan mouse) ---------- */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  pointer-events: none;
+  border-radius: 9999px;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--color-accent);
+}
+
+.cursor-ring {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border: 1px solid rgba(226, 176, 91, 0.5);
+  transition:
+    opacity 300ms,
+    width 400ms var(--ease-out),
+    height 400ms var(--ease-out),
+    margin 400ms var(--ease-out),
+    background-color 400ms,
+    border-color 400ms;
+}
+
+.cursor-ring.is-hover {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  background: rgba(226, 176, 91, 0.08);
+  border-color: rgba(226, 176, 91, 0.9);
+}
+
+.cursor-ring > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-archivo), sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+.cursor-ring.has-label {
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.cursor-ring.has-label > span {
+  opacity: 1;
+}
+
+.cursor-visible .cursor-dot,
+.cursor-visible .cursor-ring {
+  opacity: 1;
+}
+
+/* ---------- Chat & modal ---------- */
 @keyframes pop {
   from {
     opacity: 0;
@@ -177,11 +486,25 @@ section[id] {
 }
 
 .pop {
-  animation: pop 280ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+  animation: pop 380ms var(--ease-out) both;
 }
 
 .msg-in {
-  animation: msg-in 320ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+  animation: msg-in 420ms var(--ease-out) both;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--color-accent);
+  animation: pulse-ring 2.4s var(--ease-out) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -190,26 +513,45 @@ section[id] {
   }
 
   .rise,
+  .fade-up,
   .draw,
   .pop,
   .msg-in,
-  .marquee-track {
+  .marquee-track,
+  .grain,
+  .aurora,
+  .scroll-line::after,
+  .pulse-ring::after {
     animation: none;
   }
 
-  .reveal {
+  .rotator > span {
+    animation: none;
+  }
+
+  .rotator > span:first-child {
+    opacity: 1;
+  }
+
+  .reveal,
+  .reveal-wipe > *,
+  .split-word > span {
     opacity: 1;
     transform: none;
+    filter: none;
     clip-path: none;
     transition: none;
   }
 
-  .parallax {
+  .parallax,
+  .tilt {
     transform: none !important;
     opacity: 1 !important;
   }
 
-  .spotlight {
+  .spotlight,
+  .cursor-dot,
+  .cursor-ring {
     display: none;
   }
 }
